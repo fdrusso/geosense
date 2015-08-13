@@ -51,7 +51,7 @@ public class GeoSense {
 	static {
 		try {
 			tzWorld = new TZWorld(GeoSense.class.getResource("tzworld/"), "tz_world_mp");
-			zoneTab = new ZoneTab(GeoSense.class.getResourceAsStream("zone.tab"));
+			zoneTab = new ZoneTab(GeoSense.class.getResourceAsStream("zone1970.tab"));
 			
 			regionalZones = new HashMap<String, RegionalTZ>();
 			regionalZones.put("US", new RegionalTZ(GeoSense.class.getResourceAsStream("tz_US.txt")));
@@ -145,13 +145,5 @@ public class GeoSense {
 
 		// no fallback
 		return null;
-	}
-
-	/**
-	 * Note everything initializes on class load. This method need not be
-	 * called, but is provided for convenience to force initialization, e.g. to
-	 * make performance on first actual use more predictable.
-	 */
-	public static void init() {
 	}
 }

@@ -19,17 +19,15 @@ package com.redlaser.geosense;
 import java.util.List;
 import java.util.TimeZone;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * @author Frank D Russo
  */
-public class TestGeoSense extends TestCase {
-	static {
-		// force initialization once
-		GeoSense.init();
-	}
-	
+public class TestGeoSense {
+
+	@Test
 	public void testGetTimeZone() {
 		TimeZone tz1 = GeoSense.getTimeZone(37.29390,-121.91413);
 		assertNotNull(tz1);
@@ -44,6 +42,7 @@ public class TestGeoSense extends TestCase {
 		assertEquals("Etc/GMT+1", tz3.getID());
 	}
 
+	@Test
 	public void testGetTimeZonesByCountry() {
 		List<TimeZone> usTZs = GeoSense.getTimeZones("US");
 		assertTrue(usTZs.contains(TimeZone.getTimeZone("America/New_York")));
@@ -57,6 +56,7 @@ public class TestGeoSense extends TestCase {
 		assertEquals("Europe/Berlin", deTZ.getID());
 	}
 
+	@Test
 	public void testGetACountryByTimezone() {
 		String country = GeoSense.getACountry(TimeZone.getTimeZone("Asia/Shanghai"));
 		assertEquals("CN", country);

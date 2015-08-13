@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 
 /**
@@ -40,33 +41,47 @@ public class ZoneTab {
 	public ZoneTab(InputStream in) throws IOException {
 		tzByCountry = new HashMap<String, List<TimeZone>>();
 		countryByTz = new HashMap<TimeZone, List<String>>();
+		HashMap<String, TimeZone> mainTzByCountry = new HashMap<String, TimeZone>();
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 		String line;
 		while ((line = reader.readLine()) != null) {
-			if (line.startsWith("#"))
+			if (line.startsWith("#")) {
 				continue;
-			
+			}
+
 			String[] cols = line.split("\t");
 			if (cols.length >= 3) {
-				String country = cols[0];
-				String tzName = cols[2];
-				TimeZone tz = TimeZone.getTimeZone(tzName);
-				
-				List<TimeZone> tzs = tzByCountry.get(country);
-				if (tzs == null) {
-					tzs = new ArrayList<TimeZone>();
-					tzByCountry.put(country, tzs);
+				String[] zoneCountriesList = cols[0].split(",");
+				for (int i=0; i< zoneCountriesList.length; i++) {
+					String country = zoneCountriesList[i]; 
+					String tzName = cols[2];
+					TimeZone tz = TimeZone.getTimeZone(tzName);
+
+					List<TimeZone> tzs = tzByCountry.get(country);
+					if (tzs == null) {
+						tzs = new ArrayList<TimeZone>();
+						tzByCountry.put(country, tzs);
+					}
+					if (i == 0 && !mainTzByCountry.containsKey(country)) {
+						mainTzByCountry.put(country, tz);
+					} else {
+						tzs.add(tz);
+					}
+
+					List<String> countries = countryByTz.get(tz);
+					if (countries == null) {
+						countries = new ArrayList<String>();
+						countryByTz.put(tz, countries);
+					}
+					countries.add(country);
 				}
-				tzs.add(tz);
-				
-				List<String> countries = countryByTz.get(tz);
-				if (countries == null) {
-					countries = new ArrayList<String>();
-					countryByTz.put(tz, countries);
-				}
-				countries.add(country);
 			}
+		}
+
+		for(Entry<String, TimeZone> entry:mainTzByCountry.entrySet()) {
+			List<TimeZone> tzs = tzByCountry.get(entry.getKey());
+			tzs.add(0, entry.getValue());
 		}
 	}
 	

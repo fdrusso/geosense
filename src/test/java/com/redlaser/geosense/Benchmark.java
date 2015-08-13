@@ -24,7 +24,6 @@ package com.redlaser.geosense;
 public class Benchmark {
 	public static void main(String[] args) {
 		long start = System.currentTimeMillis();
-		GeoSense.init();
 		long loadTime = System.currentTimeMillis() - start;
 		
 		int n = 10000;
