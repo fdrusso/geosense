@@ -29,15 +29,15 @@ public class TestGeoSense {
 
 	@Test
 	public void testGetTimeZone() {
-		TimeZone tz1 = GeoSense.getTimeZone(37.29390,-121.91413);
+		TimeZone tz1 = GeoSense.getTimeZone(37.29390, -121.91413);
 		assertNotNull(tz1);
 		assertEquals("America/Los_Angeles", tz1.getID());
-		
-		TimeZone tz2 = GeoSense.getTimeZone(0.0,50.0); // Etc/GMT-3
+
+		TimeZone tz2 = GeoSense.getTimeZone(0.0, 50.0); // Etc/GMT-3
 		assertNotNull(tz2);
 		assertEquals("Etc/GMT-3", tz2.getID());
-		
-		TimeZone tz3 = GeoSense.getTimeZone(0.0,-20.0); // Etc/GMT+1
+
+		TimeZone tz3 = GeoSense.getTimeZone(0.0, -20.0); // Etc/GMT+1
 		assertNotNull(tz3);
 		assertEquals("Etc/GMT+1", tz3.getID());
 	}
@@ -47,10 +47,10 @@ public class TestGeoSense {
 		List<TimeZone> usTZs = GeoSense.getTimeZones("US");
 		assertTrue(usTZs.contains(TimeZone.getTimeZone("America/New_York")));
 		assertTrue(usTZs.contains(TimeZone.getTimeZone("America/Denver")));
-		
+
 		List<TimeZone> deTZs = GeoSense.getTimeZones("DE");
 		assertTrue(deTZs.contains(TimeZone.getTimeZone("Europe/Berlin")));
-		
+
 		TimeZone deTZ = GeoSense.getATimeZone("DE");
 		assertNotNull(deTZ);
 		assertEquals("Europe/Berlin", deTZ.getID());
@@ -59,6 +59,15 @@ public class TestGeoSense {
 	@Test
 	public void testGetACountryByTimezone() {
 		String country = GeoSense.getACountry(TimeZone.getTimeZone("Asia/Shanghai"));
+		assertEquals("CN", country);
+	}
+
+	@Test
+	public void testGetACountryByTimezoneLinked() {
+		String country = GeoSense.getACountry(TimeZone.getTimeZone("America/Jujuy"));
+		assertEquals("AR", country);
+
+		country = GeoSense.getACountry(TimeZone.getTimeZone("Asia/Chungking"));
 		assertEquals("CN", country);
 	}
 }

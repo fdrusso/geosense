@@ -51,7 +51,8 @@ public class GeoSense {
 	static {
 		try {
 			tzWorld = new TZWorld(GeoSense.class.getResource("tzworld/"), "tz_world_mp");
-			zoneTab = new ZoneTab(GeoSense.class.getResourceAsStream("zone1970.tab"));
+			zoneTab = new ZoneTab(GeoSense.class.getResourceAsStream("zone1970.tab"),
+				GeoSense.class.getResourceAsStream("backward"));
 			
 			regionalZones = new HashMap<String, RegionalTZ>();
 			regionalZones.put("US", new RegionalTZ(GeoSense.class.getResourceAsStream("tz_US.txt")));
