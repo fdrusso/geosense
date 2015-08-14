@@ -46,7 +46,8 @@ public class GeoSense {
 	private static TZWorld tzWorld;
 	private static ZoneTab zoneTab;
 	private static Map<String, RegionalTZ> regionalZones;
-
+	private static Map<Integer, TimeZone> fallback;
+	
 	// init on class load
 	static {
 		try {
@@ -56,6 +57,8 @@ public class GeoSense {
 			
 			regionalZones = new HashMap<String, RegionalTZ>();
 			regionalZones.put("US", new RegionalTZ(GeoSense.class.getResourceAsStream("tz_US.txt")));
+			
+			initFallBack();
 		}
 		catch (Exception e) {
 			log.severe(e.toString());
@@ -69,13 +72,26 @@ public class GeoSense {
 
 		// fall back to a normalized Etc time zone by longitude
 		int offset = (int) Math.round(lon / 15.0);
-		
-		// NOTE Etc naming convention is opposite the actual offset in hours
-		tz = TimeZone.getTimeZone("Etc/GMT" + (offset <= 0 ? "+" + (-offset) : "-" + offset));
-
-		return tz;
+		return fallback.get(offset);
 	}
 	
+	private static void initFallBack() {
+		fallback = new HashMap<Integer, TimeZone>();
+		for (int offset = -12; offset <= 12; offset++) {
+			String tzString;
+			if (offset < 0) {
+				tzString = "Etc/GMT+" + (-offset);
+			} else if (offset > 0) {
+				tzString = "Etc/GMT-" + (offset);
+			} else {
+				tzString = "Etc/GMT";
+			}
+			TimeZone tz = TimeZone.getTimeZone(tzString);
+			fallback.put(offset, tz);
+		}
+		
+	}
+
 	public static TZWorld.TZExtent getTimeZoneExtent(double lat, double lon) {
 		return tzWorld.findTimeZoneExtent(lat, lon);
 	}
