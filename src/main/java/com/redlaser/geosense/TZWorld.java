@@ -85,7 +85,7 @@ public class TZWorld {
 		Map<Integer, List<Integer>> idxmap = new HashMap<Integer, List<Integer>>();
 		for (int i = 0; i < tzExtents.length; i++) {
 			TZExtent t = tzExtents[i];
-			for (Polygon path : t.includes) {
+			for (HPolygon path : t.includes) {
 				Rectangle r = path.getBounds();
 				// x = lon, y = lat !!!
 				for (Integer tile : getCoveredIndices(r.y, r.x, r.y + r.height, r.x + r.width)) {
@@ -180,8 +180,8 @@ public class TZWorld {
 	public static class TZExtent {
 		private TimeZone timeZone;
 		private Rectangle bbox;
-		private Polygon[] includes;
-		private Polygon[] excludes;
+		private HPolygon[] includes;
+		private HPolygon[] excludes;
 
 		protected TZExtent(ShapeFileShape shape) {
 			timeZone = TimeZone.getTimeZone((String) shape.getShapeMetadata().get("TZID"));
@@ -192,8 +192,8 @@ public class TZWorld {
 			int h = integerize(bbox2D.getMaxY()) - y;
 			bbox = new Rectangle(x, y, w, h);
 
-			List<Polygon> includes = new ArrayList<Polygon>();
-			List<Polygon> excludes = new ArrayList<Polygon>();
+			List<HPolygon> includes = new ArrayList<HPolygon>();
+			List<HPolygon> excludes = new ArrayList<HPolygon>();
 			for (Point2D[] part : shape.getShapeData()) {
 				int[] xs = new int[part.length];
 				int[] ys = new int[part.length];
@@ -212,7 +212,7 @@ public class TZWorld {
 					last = point;
 				}
 
-				Polygon poly = new Polygon(xs, ys, part.length);
+				HPolygon poly = new HPolygon(xs, ys, part.length);
 				if (area > 0.0)
 					// clockwise ?? the sense appears to be opposite that
 					// indicated in the forum post
@@ -223,9 +223,9 @@ public class TZWorld {
 			}
 
 			if (!includes.isEmpty())
-				this.includes = includes.toArray(new Polygon[includes.size()]);
+				this.includes = includes.toArray(new HPolygon[includes.size()]);
 			if (!excludes.isEmpty())
-				this.excludes = excludes.toArray(new Polygon[excludes.size()]);
+				this.excludes = excludes.toArray(new HPolygon[excludes.size()]);
 		}
 
 		/**
@@ -252,16 +252,32 @@ public class TZWorld {
 				return false;
 
 			if (excludes != null)
-				for (Polygon exclude : excludes)
+				for (HPolygon exclude : excludes)
 					if (exclude.contains(ilon, ilat))
 						return false;
 
 			if (includes != null)
-				for (Polygon include : includes)
+				for (HPolygon include : includes)
 					if (include.contains(ilon, ilat))
 						return true;
 
 			return false;
+		}
+	}
+
+	static class HPolygon extends Polygon {
+		private static final long serialVersionUID = -1346570723879275241L;
+
+		public HPolygon(int[] xs, int[] ys, int length) {
+			super(xs, ys, length);
+		}
+
+		@Deprecated
+		public Rectangle getBoundingBox() {
+			if (bounds == null) {
+				super.getBoundingBox();
+			}
+			return bounds;
 		}
 	}
 }
