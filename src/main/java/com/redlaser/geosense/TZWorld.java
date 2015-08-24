@@ -101,21 +101,15 @@ public class TZWorld {
 
 		index = new int[INDEX_SIZE][];
 		int[] sizes = new int[11];
-		for (int lat = -90; lat < 90; lat++) {
-			for (int lon = -180; lon < 180; lon++) {
-				int tile = getIndex(lat, lon);
-				List<Integer> tzs = idxmap.get(tile);
-				if (tzs == null)
-					sizes[0]++;
-				else {
-					index[tile] = new int[tzs.size()];
-					int l = index[tile].length;
-					for (int t = 0; t < l; t++)
-						index[tile][t] = tzs.get(t);
+		for (Map.Entry<Integer, List<Integer>> entry : idxmap.entrySet()) {
+			int tile = entry.getKey();
+			List<Integer> tzs = entry.getValue();
+			index[tile] = new int[tzs.size()];
+			int l = index[tile].length;
+			for (int t = 0; t < l; t++)
+				index[tile][t] = tzs.get(t);
 
-					sizes[l < 10 ? l : 10]++;
-				}
-			}
+			sizes[l < 10 ? l : 10]++;
 		}
 	}
 
@@ -188,8 +182,8 @@ public class TZWorld {
 			Rectangle2D bbox2D = shape.getBbox();
 			int x = integerize(bbox2D.getMinX());
 			int y = integerize(bbox2D.getMinY());
-			int w = integerize(bbox2D.getMaxX()) - x;
-			int h = integerize(bbox2D.getMaxY()) - y;
+			int w = integerize(bbox2D.getWidth());
+			int h = integerize(bbox2D.getHeight());
 			bbox = new Rectangle(x, y, w, h);
 
 			List<HPolygon> includes = new ArrayList<HPolygon>();

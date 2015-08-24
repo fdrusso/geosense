@@ -94,8 +94,7 @@ public class ZoneTab {
 		}
 
 		for (Entry<String, TimeZone> entry : mainTzByCountry.entrySet()) {
-			List<TimeZone> tzs = tzByCountry.get(entry.getKey());
-			tzs.add(0, entry.getValue());
+			tzByCountry.get(entry.getKey()).add(0, entry.getValue());
 		}
 	}
 
