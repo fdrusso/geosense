@@ -46,15 +46,19 @@ public class GeoSense {
 	private static TZWorld tzWorld;
 	private static ZoneTab zoneTab;
 	private static Map<String, RegionalTZ> regionalZones;
-
+	private static Map<Integer, TimeZone> fallback;
+	
 	// init on class load
 	static {
 		try {
 			tzWorld = new TZWorld(GeoSense.class.getResource("tzworld/"), "tz_world_mp");
-			zoneTab = new ZoneTab(GeoSense.class.getResourceAsStream("zone.tab"));
+			zoneTab = new ZoneTab(GeoSense.class.getResourceAsStream("zone1970.tab"),
+				GeoSense.class.getResourceAsStream("backward"));
 			
 			regionalZones = new HashMap<String, RegionalTZ>();
 			regionalZones.put("US", new RegionalTZ(GeoSense.class.getResourceAsStream("tz_US.txt")));
+			
+			initFallBack();
 		}
 		catch (Exception e) {
 			log.severe(e.toString());
@@ -68,13 +72,26 @@ public class GeoSense {
 
 		// fall back to a normalized Etc time zone by longitude
 		int offset = (int) Math.round(lon / 15.0);
-		
-		// NOTE Etc naming convention is opposite the actual offset in hours
-		tz = TimeZone.getTimeZone("Etc/GMT" + (offset <= 0 ? "+" + (-offset) : "-" + offset));
-
-		return tz;
+		return fallback.get(offset);
 	}
 	
+	private static void initFallBack() {
+		fallback = new HashMap<Integer, TimeZone>();
+		for (int offset = -12; offset <= 12; offset++) {
+			String tzString;
+			if (offset < 0) {
+				tzString = "Etc/GMT+" + (-offset);
+			} else if (offset > 0) {
+				tzString = "Etc/GMT-" + (offset);
+			} else {
+				tzString = "Etc/GMT";
+			}
+			TimeZone tz = TimeZone.getTimeZone(tzString);
+			fallback.put(offset, tz);
+		}
+		
+	}
+
 	public static TZWorld.TZExtent getTimeZoneExtent(double lat, double lon) {
 		return tzWorld.findTimeZoneExtent(lat, lon);
 	}
@@ -145,13 +162,5 @@ public class GeoSense {
 
 		// no fallback
 		return null;
-	}
-
-	/**
-	 * Note everything initializes on class load. This method need not be
-	 * called, but is provided for convenience to force initialization, e.g. to
-	 * make performance on first actual use more predictable.
-	 */
-	public static void init() {
 	}
 }

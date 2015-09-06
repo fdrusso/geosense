@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 
 /**
@@ -36,74 +37,108 @@ import java.util.TimeZone;
 public class ZoneTab {
 	private Map<String, List<TimeZone>> tzByCountry;
 	private Map<TimeZone, List<String>> countryByTz;
+	private Map<TimeZone, TimeZone> tzLinks;
 
-	public ZoneTab(InputStream in) throws IOException {
-		tzByCountry = new HashMap<String, List<TimeZone>>();
-		countryByTz = new HashMap<TimeZone, List<String>>();
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+	public ZoneTab(InputStream zoneTabIn, InputStream tzLinksIn) throws IOException {
+		BufferedReader linksReader = new BufferedReader(new InputStreamReader(tzLinksIn));
 		String line;
-		while ((line = reader.readLine()) != null) {
-			if (line.startsWith("#"))
+		tzLinks = new HashMap<TimeZone, TimeZone>();
+		while ((line = linksReader.readLine()) != null) {
+			if (line.startsWith("#")) {
 				continue;
-			
-			String[] cols = line.split("\t");
+			}
+			String[] cols = line.split("\\s+");
 			if (cols.length >= 3) {
-				String country = cols[0];
-				String tzName = cols[2];
-				TimeZone tz = TimeZone.getTimeZone(tzName);
-				
-				List<TimeZone> tzs = tzByCountry.get(country);
-				if (tzs == null) {
-					tzs = new ArrayList<TimeZone>();
-					tzByCountry.put(country, tzs);
-				}
-				tzs.add(tz);
-				
-				List<String> countries = countryByTz.get(tz);
-				if (countries == null) {
-					countries = new ArrayList<String>();
-					countryByTz.put(tz, countries);
-				}
-				countries.add(country);
+				TimeZone tz = TimeZone.getTimeZone(cols[1]);
+				TimeZone linkedTz = TimeZone.getTimeZone(cols[2]);
+				tzLinks.put(linkedTz, tz);
 			}
 		}
+		tzByCountry = new HashMap<String, List<TimeZone>>();
+		countryByTz = new HashMap<TimeZone, List<String>>();
+		HashMap<String, TimeZone> mainTzByCountry = new HashMap<String, TimeZone>();
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(zoneTabIn));
+		while ((line = reader.readLine()) != null) {
+			if (line.startsWith("#")) {
+				continue;
+			}
+
+			String[] cols = line.split("\t");
+			if (cols.length >= 3) {
+				String[] zoneCountriesList = cols[0].split(",");
+				for (int i = 0; i < zoneCountriesList.length; i++) {
+					String country = zoneCountriesList[i];
+					String tzName = cols[2];
+					TimeZone tz = TimeZone.getTimeZone(tzName);
+
+					List<TimeZone> tzs = tzByCountry.get(country);
+					if (tzs == null) {
+						tzs = new ArrayList<TimeZone>();
+						tzByCountry.put(country, tzs);
+					}
+					if (i == 0 && !mainTzByCountry.containsKey(country)) {
+						mainTzByCountry.put(country, tz);
+					} else {
+						tzs.add(tz);
+					}
+
+					List<String> countries = countryByTz.get(tz);
+					if (countries == null) {
+						countries = new ArrayList<String>();
+						countryByTz.put(tz, countries);
+					}
+					countries.add(country);
+				}
+			}
+		}
+
+		for (Entry<String, TimeZone> entry : mainTzByCountry.entrySet()) {
+			tzByCountry.get(entry.getKey()).add(0, entry.getValue());
+		}
 	}
-	
+
 	public List<TimeZone> getTimeZones(String country) {
 		return tzByCountry.get(country);
 	}
-	
+
 	public TimeZone getATimeZone(String country) {
 		if (!tzByCountry.containsKey(country))
 			return null;
-		
+
 		return tzByCountry.get(country).get(0);
 	}
-	
+
 	public List<TimeZone> getTimeZones(Locale locale) {
 		return getTimeZones(locale.getCountry());
 	}
-	
+
 	public TimeZone getATimeZone(Locale locale) {
 		return getATimeZone(locale.getCountry());
 	}
-	
+
 	public List<String> getCountries(TimeZone tz) {
+		if (tzLinks.containsKey(tz)) {
+			return getCountries(tzLinks.get(tz));
+		}
 		return countryByTz.get(tz);
 	}
-	
+
 	public String getACountry(TimeZone tz) {
-		if (!countryByTz.containsKey(tz))
+		if (!countryByTz.containsKey(tz)) {
+			if (tzLinks.containsKey(tz)) {
+				return getACountry(tzLinks.get(tz));
+			}
 			return null;
-		
+		}
+
 		return countryByTz.get(tz).get(0);
 	}
-	
+
 	public Collection<String> getCountries() {
 		return tzByCountry.keySet();
 	}
-	
+
 	public Collection<TimeZone> getTimeZones() {
 		return countryByTz.keySet();
 	}

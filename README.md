@@ -33,8 +33,8 @@ of its available methods. Examples include:
 	TimeZone tz1 = GeoSense.getTimeZone(37.29390,-121.91413); // returns America/Los_Angeles
 	String country1 = GeoSense.getACountry(tz1); // returns "US"
 	List<TimeZone> tzs1 = GeoSense.getTimeZones("US"); // returns 30 timezones (!)
-	List<TimeZone> tzs2 = GeoSense.getTimeZones("DE"); // returns 1 timezone
-	TimeZone tz2 = GeoSense.getATimeZone("DE"); // returns Europe/Berlin
+	List<TimeZone> tzs2 = GeoSense.getTimeZones("RO"); // returns 1 timezone
+	TimeZone tz2 = GeoSense.getATimeZone("RO"); // returns Europe/Bucharest
 
 ------------------------------
 This distribution incorporates data from the following 3rd-party sources:

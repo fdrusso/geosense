@@ -85,7 +85,7 @@ public class TZWorld {
 		Map<Integer, List<Integer>> idxmap = new HashMap<Integer, List<Integer>>();
 		for (int i = 0; i < tzExtents.length; i++) {
 			TZExtent t = tzExtents[i];
-			for (Polygon path : t.includes) {
+			for (HPolygon path : t.includes) {
 				Rectangle r = path.getBounds();
 				// x = lon, y = lat !!!
 				for (Integer tile : getCoveredIndices(r.y, r.x, r.y + r.height, r.x + r.width)) {
@@ -101,21 +101,15 @@ public class TZWorld {
 
 		index = new int[INDEX_SIZE][];
 		int[] sizes = new int[11];
-		for (int lat = -90; lat < 90; lat++) {
-			for (int lon = -180; lon < 180; lon++) {
-				int tile = getIndex(lat, lon);
-				List<Integer> tzs = idxmap.get(tile);
-				if (tzs == null)
-					sizes[0]++;
-				else {
-					index[tile] = new int[tzs.size()];
-					int l = index[tile].length;
-					for (int t = 0; t < l; t++)
-						index[tile][t] = tzs.get(t);
+		for (Map.Entry<Integer, List<Integer>> entry : idxmap.entrySet()) {
+			int tile = entry.getKey();
+			List<Integer> tzs = entry.getValue();
+			index[tile] = new int[tzs.size()];
+			int l = index[tile].length;
+			for (int t = 0; t < l; t++)
+				index[tile][t] = tzs.get(t);
 
-					sizes[l < 10 ? l : 10]++;
-				}
-			}
+			sizes[l < 10 ? l : 10]++;
 		}
 	}
 
@@ -180,20 +174,20 @@ public class TZWorld {
 	public static class TZExtent {
 		private TimeZone timeZone;
 		private Rectangle bbox;
-		private Polygon[] includes;
-		private Polygon[] excludes;
+		private HPolygon[] includes;
+		private HPolygon[] excludes;
 
 		protected TZExtent(ShapeFileShape shape) {
 			timeZone = TimeZone.getTimeZone((String) shape.getShapeMetadata().get("TZID"));
 			Rectangle2D bbox2D = shape.getBbox();
 			int x = integerize(bbox2D.getMinX());
 			int y = integerize(bbox2D.getMinY());
-			int w = integerize(bbox2D.getMaxX()) - x;
-			int h = integerize(bbox2D.getMaxY()) - y;
+			int w = integerize(bbox2D.getWidth());
+			int h = integerize(bbox2D.getHeight());
 			bbox = new Rectangle(x, y, w, h);
 
-			List<Polygon> includes = new ArrayList<Polygon>();
-			List<Polygon> excludes = new ArrayList<Polygon>();
+			List<HPolygon> includes = new ArrayList<HPolygon>();
+			List<HPolygon> excludes = new ArrayList<HPolygon>();
 			for (Point2D[] part : shape.getShapeData()) {
 				int[] xs = new int[part.length];
 				int[] ys = new int[part.length];
@@ -212,7 +206,7 @@ public class TZWorld {
 					last = point;
 				}
 
-				Polygon poly = new Polygon(xs, ys, part.length);
+				HPolygon poly = new HPolygon(xs, ys, part.length);
 				if (area > 0.0)
 					// clockwise ?? the sense appears to be opposite that
 					// indicated in the forum post
@@ -223,9 +217,9 @@ public class TZWorld {
 			}
 
 			if (!includes.isEmpty())
-				this.includes = includes.toArray(new Polygon[includes.size()]);
+				this.includes = includes.toArray(new HPolygon[includes.size()]);
 			if (!excludes.isEmpty())
-				this.excludes = excludes.toArray(new Polygon[excludes.size()]);
+				this.excludes = excludes.toArray(new HPolygon[excludes.size()]);
 		}
 
 		/**
@@ -252,16 +246,32 @@ public class TZWorld {
 				return false;
 
 			if (excludes != null)
-				for (Polygon exclude : excludes)
+				for (HPolygon exclude : excludes)
 					if (exclude.contains(ilon, ilat))
 						return false;
 
 			if (includes != null)
-				for (Polygon include : includes)
+				for (HPolygon include : includes)
 					if (include.contains(ilon, ilat))
 						return true;
 
 			return false;
+		}
+	}
+
+	static class HPolygon extends Polygon {
+		private static final long serialVersionUID = -1346570723879275241L;
+
+		public HPolygon(int[] xs, int[] ys, int length) {
+			super(xs, ys, length);
+		}
+
+		@Deprecated
+		public Rectangle getBoundingBox() {
+			if (bounds == null) {
+				super.getBoundingBox();
+			}
+			return bounds;
 		}
 	}
 }
