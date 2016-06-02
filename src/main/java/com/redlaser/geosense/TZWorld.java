@@ -133,10 +133,10 @@ public class TZWorld {
 	 */
 	private static Iterable<Integer> getCoveredIndices(int minLat, int minLon, int maxLat, int maxLon) {
 		// scale down
-		minLat = minLat / SCALE_FACTOR;
-		minLon = minLon / SCALE_FACTOR;
-		maxLat = maxLat / SCALE_FACTOR;
-		maxLon = maxLon / SCALE_FACTOR;
+		minLat = (int) Math.floor((double)minLat / SCALE_FACTOR);
+		minLon = (int) Math.floor((double)minLon / SCALE_FACTOR);
+		maxLat = (int) Math.ceil((double)maxLat / SCALE_FACTOR);
+		maxLon = (int) Math.ceil((double)maxLon / SCALE_FACTOR);
 
 		List<Integer> indices = new ArrayList<Integer>();
 		for (int lat = minLat; lat <= maxLat; lat++)
